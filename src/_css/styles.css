@@ -1,0 +1,210 @@
+
+
+.tabela_kap{
+    width: 1250px;
+    padding-bottom: 5px;
+    margin-right: 20px;
+    height: 100%;
+    overflow: auto; 
+    background-color: white;
+    border: 3px solid #0e55ab;
+    
+}
+
+.title_kap{
+    background-color: #0e55ab;
+    color: white;
+    text-align: center;
+    height: 40px;
+    position: sticky;
+    top: 0;
+}
+
+.bg-kapitao {
+    background-color: #0e55ab;
+    color: white;
+}
+
+
+.tabela_kap::-webkit-scrollbar {
+    width: 8px;
+    height: 60px;
+}
+
+.tabela_kap::-webkit-scrollbar-track {
+    background: #e4e4e4;
+}
+
+
+.tabela_kap::-webkit-scrollbar-thumb {
+    background: #0e55ab; /* cor da barra de rolagem */
+    border-radius: 0px; /* borda arredondada */
+}
+
+
+
+.tabela_pen{
+    width: 1250px;
+    padding-bottom: 5px;
+    height: 100%;
+    overflow: auto; 
+    margin-right: 20px;
+    border: 3px solid #ff4700;
+    background-color: white;
+
+}
+
+.title_pen{
+    background-color: #ff4700;
+    color: white;
+    text-align: center;
+    height: 40px;
+    position: sticky;
+    top: 0;
+}
+.bg-pentagono{
+    background-color: #ff4700;
+    color: white;
+}
+
+.tabela_pen::-webkit-scrollbar {
+    width: 8px;
+    height: 60px;
+}
+
+.tabela_pen::-webkit-scrollbar-track {
+    background: #e4e4e4;
+}
+
+
+.tabela_pen::-webkit-scrollbar-thumb {
+    background: #ff4700; /* cor da barra de rolagem */
+    border-radius: 0px; /* borda arredondada */
+}
+
+
+
+
+
+
+
+.form-check-input {
+    width: 1em;
+    height: 1em;
+    vertical-align: top;
+    background-position: center;
+    background-size: contain;
+}
+
+.tabela_for{
+    width: 1250px;
+    margin-right: 20px;
+    padding-bottom: 5px;
+    height: 100%;
+    overflow: auto; 
+    border: 3px solid #2b8f04;
+    background-color: white;
+}
+
+.title_for {
+    background-color: #2b8f04;
+    color: white;
+    text-align: center;
+    height: 40px;
+    position: sticky;
+    top: 0;
+    
+}
+
+.bg-forte {
+    background-color: #2b8f04;
+    color: white;
+}
+
+.tabela_for::-webkit-scrollbar {
+    width: 8px;
+    height: 60px;
+}
+
+.tabela_for::-webkit-scrollbar-track {
+    background: #e4e4e4;
+}
+
+
+.tabela_for::-webkit-scrollbar-thumb {
+    background: #2b8f04; /* cor da barra de rolagem */
+    border-radius: 0px; /* borda arredondada */
+}
+
+
+
+
+
+.tabela_gua{
+    width: 1250px;
+    margin-right: 20px;
+    padding-bottom: 5px;
+    background-color: white;
+    height: 100%;
+    overflow: auto; 
+    border: 3px solid #af0707;
+
+}
+.title_gua {
+    background-color: #af0707;
+    color: white;
+    text-align: center;
+    height: 40px;
+    position: sticky;
+    top: 0;
+}
+
+.bg-guarda{
+    background-color: #af0707;
+    color: white;
+}
+
+
+.tabela_gua::-webkit-scrollbar {
+    width: 8px;
+    height: 60px;
+}
+
+.tabela_gua::-webkit-scrollbar-track {
+    background: #e4e4e4;
+}
+
+
+.tabela_gua::-webkit-scrollbar-thumb {
+    background: #af0707; /* cor da barra de rolagem */
+    border-radius: 0px; /* borda arredondada */
+}
+
+
+
+
+
+.tabela_geral{
+    padding: 60px 20px 20px 20px;
+    display: inline-flex;
+    height: 100%;
+}
+
+.header{
+    position: sticky;
+    top: 40px;
+}
+
+.btnCheck{
+    border: 0px;
+    background-color: white;
+    padding: 2px;
+}
+
+#header-trash{
+    display: none;
+}
+
+#tbody-trash{
+    display: none;
+}
