@@ -1,11 +1,7 @@
 <div align="center">
 
-  <h1>Entrada De Mercadoria</h1>
-  <p>Sistema para verificar a entrada das mercadorias realizados na rotina 1106 (PCBONUS, PCBONUSI) com a possibilidade de filtros de data e por status de bônus e produtos.
-  
-  </br> 
-  
-  <strong>Integração esta feita no ERP Winthor - TOTVS.</strong></p>
+  <h1>Sistema de Entrada de Mercadoria Integrado ao Winthor da TOTVs</h1>
+  <p>Este sistema é integrado ao Winthor da TOTVs e puxa os dados adicionados da rotina 1106 (PCBONUS, PCBONUSI).</p>
 
   <img src="https://img.shields.io/badge/-HTML-24c308?style=flat&logo=html5&logoColor=white" alt="HTML" />
   <img src="https://img.shields.io/badge/-CSS-00b593?style=flat&logo=css3&logoColor=white" alt="css" />
@@ -17,19 +13,27 @@
 
 <br>
 
-Este sistema esta integrado ao Winthor da TOTVs e puxa os dados adicionados da rotina 1106 (PCBONUS, PCBONUSI).
-
-Sistema de Entrada de Mercadoria com visualização de tempo das equipes de EMBALAGEM, CONFERENCIA e ARMAZENAGEM. 
-
-Desta forma o vendedor e todos da empresa conseguem saber quais produtos estão entrando nas lojas e assim consegue avisar aos clientes.
-
 ![Minha animação](./src/_img/entrada.gif)
+
+### Funcionalidades
+- Visualização em tempo real das equipes de EMBALAGEM, CONFERÊNCIA e ARMAZENAGEM.
+- Exibição em tempo real dos bônus que estão sendo feitos, com contagem de tempo.
+- Possibilidade de fazer uma venda antecipada de um item que ainda não foi conferido no bônus:
+- Adicione o item na rotina 1117.
+- Coloque no campo de observação a tag: VA [NÚMERO DO BÔNUS] OBS.
+    - Exemplo: VA 145612 VENDA FEITA PELA MAGDA.
+- O sistema captura este evento e sinaliza a quantidade vendida, permitindo que a equipe de armazenagem saiba que este item não está mais no estoque.
 
 </br>
 
+
+
 ### Funções
-- [x] Criar no topo a opção de filtrar por data. (default -15 dias)
-- [x] Filtros: Disponível, Conferência, Sem Conferencia, Todos
+
+- Permite que o vendedor e todos da empresa saibam quais produtos estão entrando nas lojas.
+- Facilita o aviso aos clientes sobre a disponibilidade de produtos.
+- Filtro por data inicial e final. (default -15 dias)
+- Filtro por: Disponível, Conferência, Sem Conferencia, Todos
 
 </br>
 
