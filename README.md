@@ -115,8 +115,6 @@ Essa trigger deve ser criada na table PCBONUSI e ao realizar o checkout na rotin
 
 </br>
 
-#### Tecnologias usadas no projeto
-- PHP
-- HTML / CSS / JAVASCRIPT
-- Jquery
-  
+#### Dúvidas ?
+
+Em caso de dúvidas no funcionamento ou na implementeção pode entrar em contato por whatsapp que eu posso auxiliar. <a href="https://github.com/reynaldomota" alt="perfil">Mais Informações.</a>
