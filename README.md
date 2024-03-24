@@ -1,6 +1,6 @@
 <div align="center">
 
-  <h1>Sistema de Entrada de Mercadoria Integrado ao Winthor da TOTVs</h1>
+  <h1>Sistema Para Armazenar Produtos - Winthor TOTVs</h1>
   <p>Este sistema é integrado ao Winthor da TOTVs e puxa os dados adicionados da rotina 1106 (PCBONUS, PCBONUSI).</p>
 
   <img src="https://img.shields.io/badge/-HTML-24c308?style=flat&logo=html5&logoColor=white" alt="HTML" />
