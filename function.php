@@ -23,9 +23,13 @@
     
         setItensBonus($listaItensArmazenar, $listaConferente);
     } 
-    else if( isset($codfilial)  && $codfilial !== null  && $codconferente == null ){
+    else if(
+        isset($codfilial)
+        && in_array((int) $codfilial, [1, 2, 3], true)
+        && $codconferente == null
+    ){
         
-        getProductBonusDate($codfilial, $dtinit, $dtfin);
+        getProductBonusDate((int) $codfilial, $dtinit, $dtfin);
 
     }
     else if( $codconferente  !== null ){

@@ -19,11 +19,6 @@ function getProductBonus($codfilial, $dias){
         $title_pal = 'title_for';
         $fundo = 'bg-forte';
         $tableName = 'table-for';
-    } else if ($codfilial == 4) {
-        $title = 'GUARDA VIDA EPI';
-        $title_pal = 'title_gua';
-        $fundo = 'bg-guarda';
-        $tableName = 'table-gua';
     }
 
 
@@ -238,7 +233,7 @@ function getProductBonus($codfilial, $dias){
             SUB.RECNUM
 
             ORDER BY
-            SUB.numbonus, SUB.QTENTRADA asc
+            SUB.dtfechamento desc
 
 
     ";
@@ -269,6 +264,7 @@ function getProductBonus($codfilial, $dias){
         echo "<th scope='col'>NUMBONUS</th>";
         echo "<th scope='col'>#</th>";
         echo "<th scope='col'>DT BONUS</th>";
+        echo "<th scope='col'>DT FECHAMENTO</th>";
         echo "<th scope='col'>CODIGO</th>";
         echo "<th scope='col'>DESCRICAO</th>";
         echo "<th scope='col'>CONF</th>";
@@ -343,6 +339,7 @@ function getProductBonus($codfilial, $dias){
         echo "<tr  $status >";
 
             echo "<td data-codfilial='$codfilial' data-numbonus='$numbonus' style='text-align: center'>" . $numbonus . "</td>";
+    
 
             if ($dtarmazenagem  ) {
 
@@ -388,6 +385,8 @@ function getProductBonus($codfilial, $dias){
             }
             
             echo "<td  $cssCustom > " . $databonus . "</td>";
+            echo "<td  $cssCustom > " . $dtfecha . "</td>";
+
             echo "<td $cssCustom >" . $codprod . "</td>";
            
 

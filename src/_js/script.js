@@ -174,23 +174,27 @@ $(async function() {
     $('.alert').hide()
 
 
-    getBonusKap = await getProductBonus(1, dtinit, dtfin)
-    $("#tabela_kap").html(getBonusKap);
+    const filiais = [
+        { codfilial: 1, container: '#tabela_kap', tabela: 'table-kap' },
+        { codfilial: 2, container: '#tabela_pen', tabela: 'table-pen' },
+        { codfilial: 3, container: '#tabela_for', tabela: 'table-for' }
+    ];
+
+    filiais.forEach(async function(filial) {
+        try {
+            const html = await getProductBonus(filial.codfilial, dtinit, dtfin, filial.container);
+            $(filial.container).html(html);
+            agrupar(filial.tabela);
+        } catch (erro) {
+            $(filial.container).html(
+                "<div class='alert alert-danger m-3'>Não foi possível carregar esta filial.</div>"
+            );
+            console.error(`Erro ao carregar a filial ${filial.codfilial}:`, erro);
+        }
+    });
 
 
-    getBonusPen = await getProductBonus(2, dtinit, dtfin)
-    $("#tabela_pen").html(getBonusPen);
-
-
-    getBonusFor = await getProductBonus(3, dtinit, dtfin)
-    $("#tabela_for").html(getBonusFor);
-
-
-    getBonusGua = await getProductBonus(4, dtinit, dtfin)
-    $("#tabela_gua").html(getBonusGua);
-
-
-    async function getProductBonus(codfilial, dtinit, dtfin) {
+    async function getProductBonus(codfilial, dtinit, dtfin, divLoja) {
 
 
         const jsonData = {
@@ -199,52 +203,19 @@ $(async function() {
             dtfin
         };
 
-        if (codfilial == 1) {
-            divLoja = '#tabela_kap';
-        } else if (codfilial == 2) {
-            divLoja = '#tabela_pen';
-        } else if (codfilial == 3) {
-            divLoja = '#tabela_for';
-        } else if (codfilial == 4) {
-            divLoja = '#tabela_gua';
-        }
-
         const data = await $.ajax({
             url: "function.php",
             type: 'POST',
             data: JSON.stringify(jsonData),
             beforeSend: function() {
 
-                $(divLoja).html("<img style=' display: block; margin: auto; height: 150px;' src='SRC/_img/loading1.gif'>");
+                $(divLoja).html(
+                    "<div class='loading-tabela'>" +
+                        "<img src='src/_img/loading1.gif' alt='Carregando'>" +
+                    "</div>"
+                );
 
-            },
-
-            success: async function() {
-
-
-                
-                setTimeout(async function () {
-                    await agrupar('table-kap')
-                }, 100);
-
-                setTimeout(async function () {
-                    await agrupar('table-pen')
-                }, 100);
-
-                setTimeout(async function () {
-                    await agrupar('table-for')
-                }, 100);
-
-                setTimeout(async function () {
-                    await agrupar('table-gua')
-                }, 100);
-
-                
-
-                
             }
-
-
         });
 
         return data;
@@ -255,18 +226,22 @@ $(async function() {
 
 
     
-    async function agrupar(tableFilial){
+    function agrupar(tableFilial){
 
-        table = document.getElementById(tableFilial);
-        numRows = table.rows.length;
-        colNumbonus = {};
+        const table = document.getElementById(tableFilial);
+        if (!table) {
+            console.error(`Tabela com ID '${tableFilial}' não encontrada`);
+            return;
+        }
+
+        const numRows = table.rows.length;
+        const colNumbonus = {};
 
         for (let i = 0; i < numRows; i++) {
-            let currentCell = table.rows[i].cells[0]; 
+            let currentCell = table.rows[i].cells[0] || null
 
             let numbonus = currentCell.textContent;
-
-            
+        
             if (colNumbonus.hasOwnProperty(numbonus)) {
                 colNumbonus[numbonus]++;
                 currentCell.setAttribute('style', 'display: none'); 
@@ -292,6 +267,9 @@ $(async function() {
 
                 }
             }
+        
+
+       
         }
 
     } 
@@ -390,23 +368,14 @@ $(async function() {
         qtdConf = qtdConf + 1;
 
         if (qtdConf > 4) {
-            /* 
-                document.getElementById('alertMsg').style.display = 'block';
-                $('#msgAlert').html('Quantidade máximo de conferente: 4')
-                $('#codConferente').val('')
-                $('#nomeConferente').val('') 
-            */
+
             $('#codConferente').attr('disabled', true)
             $('#nomeConferente').attr('disabled', true)
 
             throw new Error("Quantidade máximo de conferente: 4")
         }
 
-
-
-
         if (listaConferente.includes(conferente)) {
-
 
             document.getElementById('alertMsg').style.display = 'block';
             $('#msgAlert').html('Este conferente já esta na lista de responsáveis.')

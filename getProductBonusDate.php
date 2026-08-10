@@ -19,11 +19,6 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
         $title_pal = 'title_for';
         $fundo = 'bg-forte';
         $tableName = 'table-for';
-    } else if ($codfilial == 4) {
-        $title = 'GUARDA VIDA EPI';
-        $title_pal = 'title_gua';
-        $fundo = 'bg-guarda';
-        $tableName = 'table-gua';
     }
 
 
@@ -32,8 +27,29 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
 
     $query_kap = "
 
+            WITH bonus_filtrado AS (
+                SELECT /*+ MATERIALIZE */ bonus_va.*
+                FROM pcbonusc bonus_va
+                WHERE bonus_va.databonus BETWEEN TO_DATE(:dtinit, 'YYYY-MM-DD') AND TO_DATE(:dtfin, 'YYYY-MM-DD')
+                    AND bonus_va.codfilial = :codfilial
+            ),
+            venda_antecipada AS (
+                SELECT
+                    bonus_va.numbonus,
+                    mov_va.codprod,
+                    COUNT(mov_va.codprod) AS contador,
+                    SUM(mov_va.qt) AS qt
+                FROM pclanc lanc_va
+                INNER JOIN bonus_filtrado bonus_va
+                    ON TO_NUMBER(REGEXP_SUBSTR(lanc_va.historico, '[0-9]+')) = bonus_va.numbonus
+                INNER JOIN pcmov mov_va
+                    ON mov_va.numtransent = lanc_va.numtransent
+                WHERE lanc_va.historico LIKE 'VA %'
+                AND lanc_va.dtlanc >= TRUNC(SYSDATE) - 60
+                GROUP BY bonus_va.numbonus, mov_va.codprod
+            )
 
-            SELECT 
+            SELECT
             SUB.STATUS,
             SUB.NUMBONUS,
             SUB.codfilial,
@@ -114,7 +130,8 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
             SUB.separador2,
             SUB.separador3,
             SUB.separador4,
-            SUB.RECNUM
+            SUB.VA_CONTADOR,
+            SUB.VA_QT
             
             
                 
@@ -151,10 +168,8 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
                     SUBSTR(sep3.nome, 1, INSTR(sep3.nome, ' ') - 1) AS separador3,
                     SUBSTR(sep4.nome, 1, INSTR(sep4.nome, ' ') - 1) AS separador4,
                     
-                    CASE
-                        WHEN max(PCLANC.HISTORICO) LIKE 'VA ' || BONUS.NUMBONUS || '%' THEN SUM(RECNUM)
-                        ELSE 0
-                    END AS RECNUM,
+                    NVL(va.contador, 0) AS VA_CONTADOR,
+                    NVL(va.qt, 0) AS VA_QT,
                     
                     
                     CASE
@@ -166,23 +181,18 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
                 
                                 
                     FROM
-                        pcbonusc bonus
+                        bonus_filtrado bonus
                         INNER JOIN pcbonusi item ON bonus.numbonus = item.numbonus
                         INNER JOIN pcprodut prod ON item.codprod = prod.codprod
-                        INNER JOIN pcmov mov ON item.codprod = mov.codprod
                         INNER JOIN pcest est ON bonus.codfilial = est.codfilial AND item.codprod = est.codprod
                         LEFT JOIN iwbonusarmazenar arm ON arm.numbonus = bonus.numbonus AND arm.codprod = item.codprod
                         LEFT JOIN iwbonusi iw ON iw.numbonus = bonus.numbonus AND iw.codprod = item.codprod
-                        LEFT JOIN pclanc ON PCLANC.numtransent = MOV.numtransent AND PCLANC.HISTORICO LIKE 'VA ' || BONUS.NUMBONUS || '%'
+                        LEFT JOIN venda_antecipada va ON va.numbonus = bonus.numbonus AND va.codprod = item.codprod
                         LEFT JOIN pcempr emp ON bonus.codfuncrm = emp.matricula
                         LEFT JOIN pcempr sep1 ON sep1.matricula = arm.codseparador1 AND sep1.situacao = 'A'
                         LEFT JOIN pcempr sep2 ON sep2.matricula = arm.codseparador2 AND sep2.situacao = 'A'
                         LEFT JOIN pcempr sep3 ON sep3.matricula = arm.codseparador3 AND sep3.situacao = 'A'
                         LEFT JOIN pcempr sep4 ON sep4.matricula = arm.codseparador4 AND sep4.situacao = 'A'
-                    WHERE
-                        bonus.databonus BETWEEN TO_DATE(:dtinit, 'YYYY-MM-DD') and TO_DATE(:dtfin, 'YYYY-MM-DD')
-
-                        AND bonus.codfilial = :codfilial
                     GROUP BY
                         bonus.numbonus,
                         sep1.nome,
@@ -204,7 +214,9 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
                         iw.dtinicioconf,
                         iw.dtinicioemb,
                         iw.codconferentes,
-                        iw.dtfinalconf
+                        iw.dtfinalconf,
+                        va.contador,
+                        va.qt
                     ORDER BY
                         bonus.numbonus ASC
                 
@@ -236,10 +248,13 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
             SUB.separador2,
             SUB.separador3,
             SUB.separador4,
-            SUB.RECNUM
+            SUB.VA_CONTADOR,
+            SUB.VA_QT
 
             ORDER BY
-            SUB.numbonus, SUB.QTENTRADA asc
+            SUB.dtfechamento DESC,
+            SUB.numbonus ASC,
+            SUB.QTENTRADA ASC
 
 
     ";
@@ -270,14 +285,15 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
     echo "<tr>";
         echo "<th scope='col'>NUMBONUS</th>";
         echo "<th scope='col'>#</th>";
-        echo "<th scope='col'>DT BONUS</th>";
+        echo "<th scope='col'>DT_BONUS</th>";
+        echo "<th scope='col'>DT_FECHAMENTO</th>";
         echo "<th scope='col'>CODIGO</th>";
         echo "<th scope='col'>DESCRICAO</th>";
         echo "<th scope='col'>CONF</th>";
         echo "<th scope='col'>DISP</th>";
         echo "<th scope='col'>EMBALAGEM</th>";
         echo "<th scope='col'>CONFERENCIA</th>";
-        echo "<th scope='col'>DT ARMAZENAGEM</th>";
+        echo "<th scope='col'>DT_ARMAZENAGEM</th>";
 
     echo "</tr>";
     echo "</thead>";
@@ -308,7 +324,8 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
         $qntent = isset($row["QTNF"]) ? $row["QTNF"] : null;
         $conferentesEmb = isset($row["CONFERENTES"]) ? $row["CONFERENTES"] : null;
         $qtddisp = isset($row["QTDISP"]) ? $row["QTDISP"] : null;
-        $recnum = isset($row["RECNUM"]) ? $row["RECNUM"] : null;
+        $vaContador = isset($row["VA_CONTADOR"]) ? (int) $row["VA_CONTADOR"] : 0;
+        $vaQt = isset($row["VA_QT"]) ? $row["VA_QT"] : 0;
         $tempoEmb = isset($row["TEMPO_EMB"]) ? $row["TEMPO_EMB"] : null;
 
         if ($tempoEmb !== null && $tempoEmb < 0) {
@@ -322,7 +339,7 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
     
 
         //$bgVendaAntecipada = ($row["RECNUM"] != 0) ? 'style="background-color: #fdf8c1;"' : 'style="background-color: #ffff"';
-        $bgVendaAntecipadaValor = ($row["RECNUM"] != 0) ? ' style="text-decoration: line-through; font-weight: 600; color: red;"' : '';
+        $bgVendaAntecipadaValor = ($vaContador > 0) ? ' style="text-decoration: line-through; font-weight: 600; color: red;"' : '';
         $dtfechaAtiv = (!$dtfecha && $databonus)  ? 'style="background-color: #ffd3d3"' : ' style="background-color: #ddffe2"'; 
         $bonusEmUso = (!$dtfecha && $qtentrada)  ? ' style=" background-color: #ffff87"' :' style="background-color: #ffd3d3"'; 
 
@@ -390,23 +407,17 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
             }
             
             echo "<td  $cssCustom > " . $databonus . "</td>";
+            echo "<td  $cssCustom > " . $dtfecha . "</td>";
             echo "<td $cssCustom >" . $codprod . "</td>";
            
 
-            if($row["RECNUM"] != 0){
+            if($vaContador > 0){
 
-                $query = " SELECT PCMOV.QT FROM PCLANC, PCMOV WHERE PCLANC.NUMTRANSENT = PCMOV.numtransent AND PCLANC.RECNUM = '{$recnum}'";
-                $stid = oci_parse($conn, $query);
-                oci_execute($stid, OCI_DEFAULT);
-    
-                $rowVA = oci_fetch_array($stid, OCI_ASSOC);
-                $qt = $rowVA["QT"] ;
-
-                $resultVa = $qntent - $qt;
+                $resultVa = $qntent - $vaQt;
 
                 echo "<td $cssCustom> $descricao 
                 <p style='margin-top: 10px;  margin-bottom: 0px; font-size: 12px; font-weight: 600; color: red;'> 
-                VENDA ANTECIPADA DE $qt</p>
+                $vaContador VENDA ANTECIPADA DE $vaQt</p>
                 </td>";
 
 
@@ -416,7 +427,7 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
            }
 
 
-           if($row["RECNUM"] != 0){
+           if($vaContador > 0){
 
                 echo "<td $cssCustom> 
                     <p $bgVendaAntecipadaValor> $qntent</p>

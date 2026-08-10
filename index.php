@@ -155,16 +155,16 @@ if (!isset($_COOKIE['dtfin'])) {
             <div id="statusCon" class="container-fluid">
 
 
-                <a class="navbar-brand" style=" padding-right: 20px; font-weight: 600;" href="/armazenar">Entrada de Mercadorias</a>
+                <a class="navbar-brand" style=" padding-right: 20px; font-weight: 600;" href="/armazenar">Armazenagem de Mercadoria</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
 
                 <div id="filtroStatus" class="btn-group" >
-                    <button type="button" data-status="disponivel" class="" style="background-color: #ddffe2; border: 1px solid #cdc7c7;">Disponível para venda</button>
-                    <button type="button" data-status="conferindo" class="btn btn-sm" style="background-color: #ffff87; border: 1px solid #cdc7c7;">Conferência em andamento <i class="fas fa-caret-right iconeEspaco"></i></button>
                     <button type="button" data-status="semConferencia" class="btn  btn-sm" style="background-color: #ffd3d3; border: 1px solid #cdc7c7;">Sem conferência <i class="fas fa-caret-right iconeEspaco"></i> </button>
+                    <button type="button" data-status="conferindo" class="btn btn-sm" style="background-color: #ffff87; border: 1px solid #cdc7c7;">Conferência em andamento <i class="fas fa-caret-right iconeEspaco"></i></button>
+                    <button type="button" data-status="disponivel" class="" style="background-color: #ddffe2; border: 1px solid #cdc7c7;">Disponível para venda</button>
                     <button type="button" class="btn btn-sm" data-status="todos" style=" border: 1px solid #cdc7c7;">Todos</button>
                 </div>
 
@@ -191,20 +191,14 @@ if (!isset($_COOKIE['dtfin'])) {
 
 
     <main class="container-fluid ">
-
         <div class="tabela_geral ">
-
             <div class="tabela_kap" id="tabela_kap"></div>
             <div class="tabela_pen" id="tabela_pen"></div>
             <div class="tabela_for" id="tabela_for"></div>
-            <div class="tabela_gua" id="tabela_gua"></div>
-
         </div>
-
     </main>
 
-
-    <script src="src/_js/jquery-3.6.0.min.js"></script>
+    <script src="src/_js/jquery-3.7.1.min.js"></script>
     <script src="src/_js/bootstrap.bundle.min.js"></script>
     <script src="src/_js/bootstrap-notify.min.js"></script>
     <script src="src/_js/script.js"></script>
