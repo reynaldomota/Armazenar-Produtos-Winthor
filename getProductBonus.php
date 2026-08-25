@@ -23,7 +23,7 @@ function getProductBonus($codfilial, $dias){
 
 
 
-    include("/config/conexao.php");
+    require __DIR__ . "/config/conexao.php";
 
     $query_kap = "
 

@@ -3,7 +3,7 @@
 
 function setItensBonus($listaItensArmazenar, $listaConferente){
 
-      include("/config/conexao.php");
+      require __DIR__ . "/config/conexao.php";
 
       $codseparador1 = isset($listaConferente[0]) ? $listaConferente[0] : null;
       $codseparador2 = isset($listaConferente[1]) ? $listaConferente[1] : null;

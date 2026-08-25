@@ -23,7 +23,7 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
 
 
 
-    include("/config/conexao.php");
+    require __DIR__ . "/config/conexao.php";
 
     $query_kap = "
 

@@ -5,7 +5,7 @@
       //===========================================================================
       function getConferente($codConferente){
 
-        include("/config/conexao.php"); 
+        require __DIR__ . "/config/conexao.php";
 
 
         $query = " select matricula, nome, codsetor,situacao from pcempr where matricula = '{$codConferente}' and situacao = 'A'";
