@@ -5,7 +5,7 @@ function getProductBonus($codfilial, $dias){
 
 
     if ($codfilial == 1) {
-        $title = 'KAPITAO ÁMERICA';
+        $title = 'KAPITÃO AMÉRICA';
         $title_pal = 'title_kap';
         $fundo = 'bg-kapitao';
         $tableName = 'table-kap';
@@ -32,18 +32,18 @@ function getProductBonus($codfilial, $dias){
             SUB.STATUS,
             SUB.NUMBONUS,
             SUB.codfilial,
-            SUB.databonus,
+            TO_CHAR(SUB.databonus, 'DD/MM/YY') AS databonus,
             SUB.hora,
             SUB.minuto,
             SUB.dtmontagem,
-            SUB.dtfechamento,
+            TO_CHAR(SUB.dtfechamento, 'DD/MM/YY') AS dtfechamento,
             SUB.codprod,
             SUB.descricao,
             SUB.qtnf,
             SUB.QTENTRADA,
             SUB.QTDISP,
-            TO_CHAR(SUB.dtinicioemb, 'DD/MM/YYYY HH24:MI:SS') AS dtinicioemb,
-            TO_CHAR(SUB.dtinicioconf, 'DD/MM/YYYY HH24:MI:SS') AS dtinicioconf,
+            TO_CHAR(SUB.dtinicioemb, 'DD/MM/YY HH24:MI:SS') AS dtinicioemb,
+            TO_CHAR(SUB.dtinicioconf, 'DD/MM/YY HH24:MI:SS') AS dtinicioconf,
             
             LISTAGG(SUBSTR(emp.nome, 1, INSTR(emp.nome, ' ') - 1), ', ') WITHIN GROUP (ORDER BY emp.matricula) AS conferentes,
 
@@ -91,7 +91,7 @@ function getProductBonus($codfilial, $dias){
                 
                 
                 WHEN STATUS = 3 AND SUB.DTINICIOCONF IS NULL THEN
-                TO_CHAR('AUTOMÁTICO')
+                TO_CHAR('AUTOMATICO')
                 
                 
                 WHEN STATUS = 3 THEN
@@ -105,6 +105,8 @@ function getProductBonus($codfilial, $dias){
             END AS TEMPO_CONF,
            
             SUB.dtarmazenagem,
+            SUB.dtarmazenagemini,
+            SUB.dtarmazenagemfin,
             SUB.separador1,
             SUB.separador2,
             SUB.separador3,
@@ -140,7 +142,9 @@ function getProductBonus($codfilial, $dias){
                     iw.dtfinalconf AS dtfinalconf,
                     SUBSTR(MAX(emp.nome), 1, INSTR(MAX(emp.nome), ' ') - 1) AS conferenteBonus,
                    
-                    TO_CHAR(arm.dtarmazenagem, 'DD/MM/YYYY HH24:MI:SS') AS dtarmazenagem,
+                    TO_CHAR(arm.dtarmazenagem, 'DD/MM/YY HH24:MI:SS') AS dtarmazenagem,
+                    TO_CHAR(arm.dtarmazenagemini, 'DD/MM/YY HH24:MI:SS') AS dtarmazenagemini,
+                    TO_CHAR(arm.dtarmazenagemfin, 'DD/MM/YY HH24:MI:SS') AS dtarmazenagemfin,
                     SUBSTR(sep1.nome, 1, INSTR(sep1.nome, ' ') - 1) AS separador1,
                     SUBSTR(sep2.nome, 1, INSTR(sep2.nome, ' ') - 1) AS separador2,
                     SUBSTR(sep3.nome, 1, INSTR(sep3.nome, ' ') - 1) AS separador3,
@@ -166,7 +170,18 @@ function getProductBonus($codfilial, $dias){
                         INNER JOIN pcprodut prod ON item.codprod = prod.codprod
                         INNER JOIN pcmov mov ON item.codprod = mov.codprod
                         INNER JOIN pcest est ON bonus.codfilial = est.codfilial AND item.codprod = est.codprod
-                        LEFT JOIN iwbonusarmazenar arm ON arm.numbonus = bonus.numbonus AND arm.codprod = item.codprod
+                        LEFT JOIN (
+                            SELECT numbonus, codprod,
+                                MAX(dtarmazenagem) AS dtarmazenagem,
+                                MAX(dtarmazenagemini) AS dtarmazenagemini,
+                                MAX(dtarmazenagemfin) AS dtarmazenagemfin,
+                                MAX(codseparador1) KEEP (DENSE_RANK LAST ORDER BY NVL(dtarmazenagemfin, NVL(dtarmazenagemini, dtarmazenagem)) NULLS FIRST) AS codseparador1,
+                                MAX(codseparador2) KEEP (DENSE_RANK LAST ORDER BY NVL(dtarmazenagemfin, NVL(dtarmazenagemini, dtarmazenagem)) NULLS FIRST) AS codseparador2,
+                                MAX(codseparador3) KEEP (DENSE_RANK LAST ORDER BY NVL(dtarmazenagemfin, NVL(dtarmazenagemini, dtarmazenagem)) NULLS FIRST) AS codseparador3,
+                                MAX(codseparador4) KEEP (DENSE_RANK LAST ORDER BY NVL(dtarmazenagemfin, NVL(dtarmazenagemini, dtarmazenagem)) NULLS FIRST) AS codseparador4
+                            FROM iwbonusarmazenar
+                            GROUP BY numbonus, codprod
+                        ) arm ON arm.numbonus = bonus.numbonus AND arm.codprod = item.codprod
                         LEFT JOIN iwbonusi iw ON iw.numbonus = bonus.numbonus AND iw.codprod = item.codprod
                         LEFT JOIN pclanc ON PCLANC.numtransent = MOV.numtransent AND PCLANC.HISTORICO LIKE 'VA ' || BONUS.NUMBONUS || '%'
                         LEFT JOIN pcempr emp ON bonus.codfuncrm = emp.matricula
@@ -184,6 +199,8 @@ function getProductBonus($codfilial, $dias){
                         sep3.nome,
                         sep4.nome,
                         arm.dtarmazenagem,
+                        arm.dtarmazenagemini,
+                        arm.dtarmazenagemfin,
                         EST.CODPROD,
                         bonus.codfilial,
                         bonus.databonus,
@@ -226,6 +243,8 @@ function getProductBonus($codfilial, $dias){
             SUB.dtfinalconf,
             SUB.conferenteBonus,
             SUB.dtarmazenagem,
+            SUB.dtarmazenagemini,
+            SUB.dtarmazenagemfin,
             SUB.separador1,
             SUB.separador2,
             SUB.separador3,
@@ -286,6 +305,8 @@ function getProductBonus($codfilial, $dias){
         $qtentrada = isset($row['QTENTRADA']) ? $row['QTENTRADA'] : null;
         $conferenteBonus = isset($row['CONFERENTEBONUS']) ? $row['CONFERENTEBONUS'] : null;
         $codfilial = $row["CODFILIAL"];
+        $dtarmazenagemini = isset($row["DTARMAZENAGEMINI"]) ? $row["DTARMAZENAGEMINI"] : null;
+        $dtarmazenagemfin = isset($row["DTARMAZENAGEMFIN"]) ? $row["DTARMAZENAGEMFIN"] : null;
         $dtarmazenagem = isset($row["DTARMAZENAGEM"]) ? $row["DTARMAZENAGEM"] : null;
         $dtinicioemb = isset($row["DTINICIOEMB"]) ? $row["DTINICIOEMB"] : null;
         $dtinicioconf = isset($row["DTINICIOCONF"]) ? $row["DTINICIOCONF"] : null;
@@ -312,7 +333,9 @@ function getProductBonus($codfilial, $dias){
         }
 
         
-        $tempoConf = isset($row["TEMPO_CONF"]) ? '('.$row["TEMPO_CONF"].')' : null;
+        $tempoConf = isset($row["TEMPO_CONF"])
+            ? '(' . str_replace('AUTOMATICO', 'AUTOMÁTICO', $row["TEMPO_CONF"]) . ')'
+            : null;
     
 
         //$bgVendaAntecipada = ($row["RECNUM"] != 0) ? 'style="background-color: #fdf8c1;"' : 'style="background-color: #ffff"';
@@ -341,7 +364,7 @@ function getProductBonus($codfilial, $dias){
             echo "<td data-codfilial='$codfilial' data-numbonus='$numbonus' style='text-align: center'>" . $numbonus . "</td>";
     
 
-            if ($dtarmazenagem  ) {
+            if ($dtarmazenagemfin || $dtarmazenagem) {
 
                 echo "
                 
@@ -355,7 +378,7 @@ function getProductBonus($codfilial, $dias){
                             background-size: contain;'
 
                             type='checkbox' disabled checked  
-                            data-dtarmazenagem='$dtarmazenagem' 
+                            data-dtarmazenagem='$dtarmazenagem' data-dtarmazenagemini='$dtarmazenagemini' data-dtarmazenagemfin='$dtarmazenagemfin' 
                             data-codprod='$codprod'   data-numbonus='$numbonus' 
                             data-codfilial='$codfilial' data-qtddisp='$qtddisp' data-qtdent='$qntent' /> 
                         </button> 
@@ -376,7 +399,7 @@ function getProductBonus($codfilial, $dias){
                             background-position: center;
                             background-size: contain;'
                             type='checkbox' 
-                            data-dtarmazenagem='$dtarmazenagem' 
+                            data-dtarmazenagem='$dtarmazenagem' data-dtarmazenagemini='$dtarmazenagemini' data-dtarmazenagemfin='$dtarmazenagemfin' 
                             data-codprod='$codprod' data-numbonus='$numbonus' 
                             data-codfilial='$codfilial' data-qtddisp='$qtddisp' data-qtdent='$qntent' /> 
                         </button> 
@@ -456,7 +479,7 @@ function getProductBonus($codfilial, $dias){
 
             // EQUIPE DE ARMAZENAGEM
             // ===============================================================
-            echo "<td  $cssCustom id='bodyArmazenagem'>  $dtarmazenagem " ;
+            echo "<td  $cssCustom id='bodyArmazenagem'> Início: $dtarmazenagemini <br> Fim: $dtarmazenagemfin <br> $dtarmazenagem " ;
                 echo "<div style='font-size: 12px; font-weight: 600;'>";
                     if ($separador1 && !$separador2 && !$separador3 && !$separador4) {
                         echo "$separador1";

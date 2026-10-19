@@ -179,3 +179,18 @@
 #tbody-trash{
     display: none;
 }
+
+#tabelaDestino {
+    font-size: 12px;
+}
+
+#tabelaDestino .header {
+    position: static;
+    top: auto;
+}
+
+#tabelaDestino th,
+#tabelaDestino td {
+    padding: 0.35rem;
+    white-space: nowrap;
+}

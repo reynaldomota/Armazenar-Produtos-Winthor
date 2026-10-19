@@ -6,6 +6,7 @@
 });
 
 
+let checkboxesArmazenar = [];
 const btnArmazenar = document.getElementById('btnArmazenar')
 
 function getCookie(nomeCookie) {
@@ -23,11 +24,30 @@ function getCookie(nomeCookie) {
 var dtinit = getCookie('dtinit');
 var dtfin = getCookie('dtfin');
 
+function dataParaExibicao(iso) {
+    const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return partes ? `${partes[3]}/${partes[2]}/${partes[1].slice(-2)}` : '';
+}
+
+function dataParaConsulta(valor) {
+    const partes = /^(\d{2})\/(\d{2})\/(\d{2})$/.exec(valor);
+    if (!partes) return null;
+    const dia = Number(partes[1]), mes = Number(partes[2]), ano = 2000 + Number(partes[3]);
+    const data = new Date(Date.UTC(ano, mes - 1, dia));
+    if (data.getUTCFullYear() !== ano || data.getUTCMonth() !== mes - 1 || data.getUTCDate() !== dia) return null;
+    return `${ano}-${partes[2]}-${partes[1]}`;
+}
+
+$('#campoDtInicio, #campoDtFinal').on('input', function() {
+    const numeros = this.value.replace(/\D/g, '').slice(0, 6);
+    this.value = numeros.replace(/^(\d{2})(\d)/, '$1/$2').replace(/^(\d{2}\/\d{2})(\d)/, '$1/$2');
+    this.setCustomValidity('');
+});
 
 if (dtinit || dtfin) {
  
-    $('#campoDtInicio').val(dtinit);
-    $('#campoDtFinal').val(dtfin);
+    $('#campoDtInicio').val(dataParaExibicao(dtinit));
+    $('#campoDtFinal').val(dataParaExibicao(dtfin));
 
 } else {
 
@@ -46,21 +66,40 @@ function setCookie(dtinit, dtfin) {
 
 
 
-btnArmazenar.addEventListener('click', () => {
+btnArmazenar.addEventListener('click', async () => {
 
 
 
 
     listaItensArmazenar = []
 
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked:not([disabled])');
+    const checkboxes = document.querySelectorAll('.tabela_geral input[type="checkbox"]:checked:not([disabled])');
 
 
     if (checkboxes.length > 0) {
+        const selecionados = Array.from(checkboxes);
+        const temIniciado = selecionados.some(item => item.dataset.dtarmazenagemini);
+        const temNaoIniciado = selecionados.some(item => !item.dataset.dtarmazenagemini);
+        if (temIniciado && temNaoIniciado) {
+            $.notify({
+                icon: 'fa fa-exclamation-circle',
+                message: 'Selecione apenas produtos já iniciados ou apenas produtos não iniciados. Não é permitido selecionar os dois juntos.'
+            }, {
+                type: 'warning',
+                placement: { from: 'top', align: 'right' }
+            });
+            return;
+        }
+        listaConferente = [];
+        document.getElementById('listConferente').innerHTML = '';
+        $('#codConferente, #nomeConferente').val('');
+        checkboxesArmazenar = Array.from(checkboxes);
+        const todosIniciados = checkboxesArmazenar.every(item => item.dataset.dtarmazenagemini);
+        document.getElementById('btnIniciar').disabled = todosIniciados || listaConferente.length === 0;
+        document.getElementById('btnFinalizar').disabled = !todosIniciados;
+        document.getElementById('alertMsg').style.display = 'none';
+        $('#codConferente, #btnAddConferente').prop('disabled', todosIniciados);
 
-
-        const modal = new bootstrap.Modal(document.getElementById('staticBackdrop'));
-        modal.show();
 
         const tbodyDestino = document.getElementById('tbodyDestino');
         tbodyDestino.innerHTML = '';
@@ -73,7 +112,7 @@ btnArmazenar.addEventListener('click', () => {
             const row = checkbox.closest('tr');
             row.querySelectorAll('td').forEach((cell) => {
 
-                data.push(cell.textContent);
+                data.push(cell.textContent.replace(/\s+/g, ' ').trim());
 
             });
             const newRow = document.createElement('tr');
@@ -92,8 +131,10 @@ btnArmazenar.addEventListener('click', () => {
                 qtdent: parseInt(qtdent)
             });
 
-            // Começa a partir do índice 1 para evitar adicionar a primeira coluna
-            for (let i = 1; i < data.length; i++) {
+            // Copia somente as colunas correspondentes aos cabeçalhos do modal.
+            // Exclui NUMBONUS, DT_FECHAMENTO e DT_ARMAZENAGEM.
+            const colunasModal = [1, 2, 4, 5, 6, 7, 8, 9];
+            for (const i of colunasModal) {
                 const cell = document.createElement('td');
                 cell.textContent = data[i];
                 newRow.appendChild(cell);
@@ -103,6 +144,37 @@ btnArmazenar.addEventListener('click', () => {
 
 
         });
+
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('staticBackdrop'));
+        modal.show();
+
+        if (checkboxesArmazenar.some(item => item.dataset.dtarmazenagemini)) {
+            btnArmazenar.disabled = true;
+            $('#btnFinalizar, #btnAddConferente, #codConferente').prop('disabled', true);
+            try {
+                const resposta = await $.ajax({
+                    type: 'POST', url: 'function.php', contentType: 'application/json', dataType: 'json',
+                    data: JSON.stringify({ acao: 'conferentes', listaItensArmazenar })
+                });
+                if (resposta.erro) throw new Error(resposta.msg);
+                resposta.conferentes.forEach(conferente => {
+                    const row = document.createElement('tr');
+                    [conferente.codigo, conferente.nome].forEach(value => {
+                        const cell = document.createElement('td');
+                        cell.textContent = value;
+                        row.appendChild(cell);
+                    });
+                    document.getElementById('listConferente').appendChild(row);
+                });
+            } catch (erro) {
+                $('#alertMsg').show();
+                $('#msgAlert').text(erro.message || 'Não foi possível carregar os conferentes.');
+            } finally {
+                btnArmazenar.disabled = false;
+                $('#btnFinalizar').prop('disabled', !todosIniciados);
+                $('#codConferente, #btnAddConferente').prop('disabled', todosIniciados);
+            }
+        }
 
 
     } else {
@@ -136,8 +208,13 @@ $(async function() {
 
         e.preventDefault();
     
-        let dtinitAlter = $('#campoDtInicio').val();
-        let dtfinAlter = $('#campoDtFinal').val();
+        let dtinitAlter = dataParaConsulta($('#campoDtInicio').val());
+        let dtfinAlter = dataParaConsulta($('#campoDtFinal').val());
+        for (const [id, data] of [['campoDtInicio', dtinitAlter], ['campoDtFinal', dtfinAlter]]) {
+            const campo = document.getElementById(id);
+            campo.setCustomValidity(data ? '' : 'Informe uma data válida no formato dd/mm/yy.');
+            if (!data) { campo.reportValidity(); return; }
+        }
 
         setCookie(dtinitAlter, dtfinAlter)
 
@@ -226,54 +303,68 @@ $(async function() {
 
 
     
-    function agrupar(tableFilial){
+    let statusFiltroAtual = 'todos';
 
+    function agrupar(tableFilial) {
         const table = document.getElementById(tableFilial);
-        if (!table) {
-            console.error(`Tabela com ID '${tableFilial}' não encontrada`);
-            return;
-        }
+        if (!table) return;
 
-        const numRows = table.rows.length;
-        const colNumbonus = {};
+        const numbonusFiltro = document.getElementById('filtroNumbonus').value.trim();
+        const grupos = new Map();
+        const andamentoBonus = new Map();
 
-        for (let i = 0; i < numRows; i++) {
-            let currentCell = table.rows[i].cells[0] || null
-
-            let numbonus = currentCell.textContent;
-        
-            if (colNumbonus.hasOwnProperty(numbonus)) {
-                colNumbonus[numbonus]++;
-                currentCell.setAttribute('style', 'display: none'); 
-            } else {
-
-                colNumbonus[numbonus] = 1;
-
-                let rowspan = 1;
-                for (let j = i + 1; j < numRows; j++) {
-                    let nextCell = table.rows[j].cells[0];
-                    if (nextCell.textContent === numbonus) {
-                        rowspan++;
-                        nextCell.setAttribute('style', 'display: none'); 
-                    } else {
-                        break;
-                    }
-                }
-                if (rowspan > 1) {
-                    currentCell.setAttribute('rowspan', rowspan);
-                    currentCell.style.textAlign = 'center';
-                    currentCell.style.verticalAlign = 'middle';
-                    currentCell.style.height = '100px';
-
-                }
+        table.querySelectorAll('tbody tr').forEach(row => {
+            const cell = row.querySelector('td[data-numbonus]');
+            const checkbox = row.querySelector('input[type="checkbox"]');
+            if (!cell || !checkbox) return;
+            const numbonus = cell.dataset.numbonus;
+            if (!andamentoBonus.has(numbonus)) {
+                andamentoBonus.set(numbonus, { iniciado: false, pendente: false });
             }
-        
+            const andamento = andamentoBonus.get(numbonus);
+            andamento.iniciado = andamento.iniciado || Boolean(checkbox.dataset.dtarmazenagemini);
+            andamento.pendente = andamento.pendente
+                || (!checkbox.dataset.dtarmazenagemfin && !checkbox.dataset.dtarmazenagem);
+        });
 
-       
-        }
+        table.querySelectorAll('tbody tr').forEach(row => {
+            const cell = row.querySelector('td[data-numbonus]');
+            if (!cell) return;
 
-    } 
-    
+            const numbonus = cell.dataset.numbonus;
+            const andamento = andamentoBonus.get(numbonus);
+            const bonusEmAndamento = andamento && andamento.iniciado && andamento.pendente;
+            const correspondeStatus = statusFiltroAtual === 'todos'
+                || (statusFiltroAtual === 'iniciados' ? bonusEmAndamento : row.dataset.status === statusFiltroAtual);
+            const visivel = (!numbonusFiltro || numbonus === numbonusFiltro)
+                && correspondeStatus;
+
+            row.hidden = !visivel;
+            cell.removeAttribute('rowspan');
+            cell.style.display = 'none';
+            if (!visivel) return;
+
+            if (!grupos.has(numbonus)) grupos.set(numbonus, []);
+            grupos.get(numbonus).push(cell);
+        });
+
+        grupos.forEach(cells => {
+            const first = cells[0];
+            first.style.display = '';
+            first.rowSpan = cells.length;
+            first.style.textAlign = 'center';
+            first.style.verticalAlign = 'middle';
+        });
+    }
+
+    function aplicarFiltros() {
+        filiais.forEach(filial => agrupar(filial.tabela));
+    }
+
+    $('#filtroNumbonus').on('input', aplicarFiltros);
+    $('#filtroNumbonus').on('keydown', function(e) {
+        if (e.key === 'Enter') e.preventDefault();
+    });
 
     listaConferente = []
     qtdConferente = 0;
@@ -336,7 +427,7 @@ $(async function() {
                     } else {
 
                         $('#nomeConferente').val(dados.nome)
-                        $('#codauxiliar').focus()
+                        $('#btnAddConferente').focus()
 
 
                     }
@@ -358,193 +449,68 @@ $(async function() {
 
 
 
-    qtdConf = 0
-    $('#btnAddConferente').click(function(e) {
-
-        codConferenteUp = document.getElementById('codConferente')
-        nomeConferenteUp = document.getElementById('nomeConferente')
-        conferente = document.getElementById('codConferente').value
-
-        qtdConf = qtdConf + 1;
-
-        if (qtdConf > 4) {
-
-            $('#codConferente').attr('disabled', true)
-            $('#nomeConferente').attr('disabled', true)
-
-            throw new Error("Quantidade máximo de conferente: 4")
+    $('#btnAddConferente').click(function() {
+        const codigo = $('#codConferente').val().trim();
+        const nome = $('#nomeConferente').val().trim();
+        if (!codigo || !nome || listaConferente.includes(codigo) || listaConferente.length >= 4) {
+            $('#alertMsg').show();
+            $('#msgAlert').text('Informe um conferente válido, sem repetição. Máximo de 4 conferentes.');
+            return;
         }
-
-        if (listaConferente.includes(conferente)) {
-
-            document.getElementById('alertMsg').style.display = 'block';
-            $('#msgAlert').html('Este conferente já esta na lista de responsáveis.')
-
-            codConferenteUp.value = ''
-            nomeConferenteUp.value = ''
-
-
-            throw new Error("Este conferente já esta na lista.")
-
-        } else {
-
-
-            divRow = document.createElement("tr");
-            div1 = document.createElement("td");
-            div2 = document.createElement("td");
-            div1.textContent = codConferenteUp.value;
-            div2.textContent = nomeConferenteUp.value;
-            divRow.appendChild(div1);
-            divRow.appendChild(div2);
-
-            document.getElementById("listConferente").appendChild(divRow);
-
-            listaConferente.push(conferente)
-
-            console.log(`${conferente} - Adicionado na lista de conferentes.`);
-
-        }
-
-
-
-        codConferenteUp.value = ''
-        nomeConferenteUp.value = ''
-        codConferenteUp.removeAttribute('disabled');
-        nomeConferenteUp.removeAttribute('disabled');
-
-
-
+        const row = document.createElement('tr');
+        [codigo, nome].forEach(value => {
+            const cell = document.createElement('td');
+            cell.textContent = value;
+            row.appendChild(cell);
+        });
+        document.getElementById('listConferente').appendChild(row);
+        listaConferente.push(codigo);
+        const todosIniciados = checkboxesArmazenar.every(item => item.dataset.dtarmazenagemini);
+        $('#btnIniciar').prop('disabled', gravandoArmazenagem || todosIniciados);
+        $('#codConferente, #nomeConferente').val('');
+        $('#codConferente').focus();
     });
 
-
-
-    $('#btnEnviar').click((e) => {
-
-
-        console.log('Enviado lista de itens: ' + listaItensArmazenar);
-
-
-        if (listaConferente.length == 0) {
-
-            document.getElementById('alertMsg').style.display = 'block';
-            $('#msgAlert').html('Informe um conferente responsável pelo armazenamento.')
-
-        } else {
-
-            $.ajax({
-                type: "POST",
-                url: "function.php",
-                data: JSON.stringify({
-                    listaItensArmazenar,
-                    listaConferente
-                }),
-
-
-                success: function(data) {
-
-
-
-                    dados = JSON.parse(data);
-
-                    if (dados.erro == false) {
-
-                        $(".modal").modal("hide");
-
-
-                        $.notify({
-                            icon: 'fa fa-exclamation-circle',
-                            message: dados.msg
-                        }, {
-                            type: dados.tipo,
-                            placement: {
-                                from: 'top',
-                                align: 'right',
-                            }
-                        });
-
-
-
-                    } else {
-
-
-                        $(".modal").modal("hide");
-
-
-                        $.notify({
-                            icon: 'fa fa-exclamation-circle',
-                            message: dados.msg
-                        }, {
-                            type: dados.tipo,
-                            placement: {
-                                from: 'top',
-                                align: 'right',
-                            }
-                        });
-
-
-                        setTimeout(function() {
-                            location.reload();
-                        }, 2000);
-
-
-                    }
-
-
-                }
-
-
-            }).done(function() {
-
-                setInterval(() => {
-                    location.reload();
-                }, 2000);
-
-            });
-
+    let gravandoArmazenagem = false;
+    async function gravarArmazenagem(acao) {
+        if (gravandoArmazenagem) return;
+        if (acao === 'iniciar' && listaConferente.length === 0) {
+            $('#alertMsg').show();
+            $('#msgAlert').text('Informe um conferente responsável pelo armazenamento.');
+            return;
         }
+        gravandoArmazenagem = true;
+        $('#btnIniciar, #btnFinalizar').prop('disabled', true);
+        try {
+            const resposta = await $.ajax({
+                type: 'POST', url: 'function.php', contentType: 'application/json', dataType: 'json',
+                data: JSON.stringify({ acao, listaItensArmazenar, listaConferente })
+            });
+            if (resposta.erro) throw new Error(resposta.msg);
+            $('#alertMsg').show();
+            $('#msgAlert').text(resposta.msg);
+            if (acao === 'iniciar') {
+                checkboxesArmazenar.forEach(item => { item.dataset.dtarmazenagemini = 'iniciado'; });
+                $('#codConferente, #btnAddConferente').prop('disabled', true);
+            } else {
+                location.reload();
+            }
+        } catch (erro) {
+            $('#alertMsg').show();
+            $('#msgAlert').text(erro.message || 'Não foi possível gravar. Tente novamente.');
+        } finally {
+            gravandoArmazenagem = false;
+            const todosIniciados = checkboxesArmazenar.every(item => item.dataset.dtarmazenagemini);
+            $('#btnIniciar').prop('disabled', todosIniciados || listaConferente.length === 0);
+            $('#btnFinalizar').prop('disabled', !todosIniciados);
+        }
+    }
+    $('#btnIniciar').click(() => gravarArmazenagem('iniciar'));
+    $('#btnFinalizar').click(() => gravarArmazenagem('finalizar'));
 
-
-    })
-
-
-
-    
     $('#filtroStatus button').click(function() {
-
-        $('table tbody tr').show();
-
-
-        
-        var statusFiltro = $(this).data('status');
-        if (statusFiltro === 'todos') {
-            $('table tbody tr').show();
-        } else {
-            $('table tbody tr').each(function() {
-                var status = $(this).data('status');
-                if (status === statusFiltro) {
-                    var filial = $(this).data('codfilial');
-                    var numbonus = $(this).find('td').data('numbonus');
-                    var numbonusVisivel = 0;
-                    $('table tbody tr').each(function() {
-                        if (    $(this).is(':visible') && 
-                                $(this).data('status') === statusFiltro && 
-                                $(this).data('codfilial') === filial && 
-                                $(this).find('td[data-numbonus="' + numbonus + '"]').length > 0
-                            ) { 
-                                numbonusVisivel++; 
-                                 
-                                /* if ($(this).find('td[data-numbonus="' + numbonus + '"]').index() === 0) {
-                                    $(this).find('td[data-numbonus="' + numbonus + '"]').attr('rowspan', numbonusVisivel).show();
-                                }  */
-
-                            }
-                    });
-                    $(this).find('td[data-numbonus="' + numbonus + '"]').attr('rowspan', numbonusVisivel);
-                } else {
-                    $(this).hide();
-                }
-            });
-        }
+        statusFiltroAtual = $(this).data('status');
+        aplicarFiltros();
     });
 
 

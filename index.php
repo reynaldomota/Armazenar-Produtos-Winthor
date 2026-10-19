@@ -38,7 +38,7 @@ if (!isset($_COOKIE['dtfin'])) {
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link href="src/_css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="src/_css/styles.css" type="text/css">
+    <link rel="stylesheet" href="src/_css/styles.css?v=<?= filemtime(__DIR__ . '/src/_css/styles.css') ?>" type="text/css">
     <link rel="icon" href="src/_img/favicon.png" />
     <title>Entrada de Mercadoria</title>
 </head>
@@ -69,9 +69,10 @@ if (!isset($_COOKIE['dtfin'])) {
                 <div class="modal-body">
 
 
+                    <div class="table-responsive">
                     <table id="tabelaDestino" class="table table-bordered table-hover bg-light" data-show-columns='true'>
 
-                        <thead id='theader-kap' class="header bg-kapitao">
+                        <thead id='theader-kap' class="bg-kapitao">
 
                             <tr>
                                 <th scope="col">#</th>
@@ -82,13 +83,13 @@ if (!isset($_COOKIE['dtfin'])) {
                                 <th scope="col">DISP</th>
                                 <th scope="col">EMB</th>
                                 <th scope="col">CONF</th>
-                                <th scope="col"></th>
                             </tr>
 
                         </thead>
                         <tbody id="tbodyDestino"> </tbody>
 
                     </table>
+                    </div>
 
 
 
@@ -125,18 +126,17 @@ if (!isset($_COOKIE['dtfin'])) {
                             <label for="codConferente">COD</label>
                             <input type="text" class="form-control" id="codConferente">
                         </div>
-                        <div class="col-md-5">
-                            <label for="nomeSeparador">NOME DO CONFERENTE</label>
-                            <input type="text" disabled="" class="form-control" id="nomeConferente">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="codauxiliar">ADICIONAR</label>
-                            <button type="button" id="btnAddConferente" class="btn btn-primary">+</button>
+                        <div class="col-md-6">
+                            <label for="nomeConferente">NOME DO CONFERENTE</label>
+                            <div class="input-group">
+                                <input type="text" disabled class="form-control" id="nomeConferente">
+                                <button type="button" id="btnAddConferente" class="btn btn-primary" aria-label="Adicionar conferente">+</button>
+                            </div>
                         </div>
 
-                        <div class="col-md-2">
-                            <label for="btnConferir">GRAVAR</label>
-                            <button type="button" id="btnEnviar" class="btn btn-primary">ENVIAR</button>
+                        <div class="col-md-4 d-flex align-items-end gap-2">
+                            <button type="button" id="btnIniciar" class="btn btn-primary" disabled>Iniciar</button>
+                            <button type="button" id="btnFinalizar" class="btn btn-success" disabled>Finalizar</button>
                         </div>
 
                     </div>
@@ -165,15 +165,17 @@ if (!isset($_COOKIE['dtfin'])) {
                     <button type="button" data-status="semConferencia" class="btn  btn-sm" style="background-color: #ffd3d3; border: 1px solid #cdc7c7;">Sem conferência <i class="fas fa-caret-right iconeEspaco"></i> </button>
                     <button type="button" data-status="conferindo" class="btn btn-sm" style="background-color: #ffff87; border: 1px solid #cdc7c7;">Conferência em andamento <i class="fas fa-caret-right iconeEspaco"></i></button>
                     <button type="button" data-status="disponivel" class="" style="background-color: #ddffe2; border: 1px solid #cdc7c7;">Disponível para venda</button>
+                    <button type="button" data-status="iniciados" class="btn btn-sm" style="background-color: #cfe2ff; border: 1px solid #cdc7c7;">Iniciados</button>
                     <button type="button" class="btn btn-sm" data-status="todos" style=" border: 1px solid #cdc7c7;">Todos</button>
                 </div>
 
                
                 <form id="formRelatorio" class="btn-group" style="color: rgb(255, 255, 255); margin-top: 15px;" method="POST" action="">
                     <i id="iconeCalendario" class="fas fa-calendar-alt" style="margin-right: 10px"> </i>
-                    <input id="campoDtInicio" class="form-control form-control-sm" style="margin-right: 10px" name="dataIni" type="date">
-                    <input id="campoDtFinal" class="form-control form-control-sm" name="dataFin" type="date">
-                    <input class="btn btn-warning btn-sm"  onclick='setCookie()' style="margin-left: 10px; margin-right: 10px;" type="submit" value="Buscar" name="enviar">
+                    <input id="campoDtInicio" class="form-control form-control-sm" style="margin-right: 10px; width: 110px;" name="dataIni" type="text" inputmode="numeric" maxlength="8" placeholder="dd/mm/yy" aria-label="Data inicial" required>
+                    <input id="campoDtFinal" class="form-control form-control-sm" style="width: 110px;" name="dataFin" type="text" inputmode="numeric" maxlength="8" placeholder="dd/mm/yy" aria-label="Data final" required>
+                    <input class="btn btn-warning btn-sm" style="margin-left: 10px; margin-right: 10px;" type="submit" value="Buscar" name="enviar">
+                    <input id="filtroNumbonus" class="form-control form-control-sm" style="width: 120px;" type="text" inputmode="numeric" placeholder="NUMBONUS" aria-label="Filtrar por NUMBONUS">
                 </form>
     
 
@@ -201,7 +203,7 @@ if (!isset($_COOKIE['dtfin'])) {
     <script src="src/_js/jquery-3.7.1.min.js"></script>
     <script src="src/_js/bootstrap.bundle.min.js"></script>
     <script src="src/_js/bootstrap-notify.min.js"></script>
-    <script src="src/_js/script.js"></script>
+    <script src="src/_js/script.js?v=<?= filemtime(__DIR__ . '/src/_js/script.js') ?>"></script>
 
 
 </body>
