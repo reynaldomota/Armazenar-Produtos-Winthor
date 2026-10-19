@@ -26,20 +26,20 @@ var dtfin = getCookie('dtfin');
 
 function dataParaExibicao(iso) {
     const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-    return partes ? `${partes[3]}/${partes[2]}/${partes[1].slice(-2)}` : '';
+    return partes ? `${partes[3]}/${partes[2]}/${partes[1]}` : '';
 }
 
 function dataParaConsulta(valor) {
-    const partes = /^(\d{2})\/(\d{2})\/(\d{2})$/.exec(valor);
+    const partes = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(valor);
     if (!partes) return null;
-    const dia = Number(partes[1]), mes = Number(partes[2]), ano = 2000 + Number(partes[3]);
+    const dia = Number(partes[1]), mes = Number(partes[2]), ano = Number(partes[3]);
     const data = new Date(Date.UTC(ano, mes - 1, dia));
     if (data.getUTCFullYear() !== ano || data.getUTCMonth() !== mes - 1 || data.getUTCDate() !== dia) return null;
     return `${ano}-${partes[2]}-${partes[1]}`;
 }
 
 $('#campoDtInicio, #campoDtFinal').on('input', function() {
-    const numeros = this.value.replace(/\D/g, '').slice(0, 6);
+    const numeros = this.value.replace(/\D/g, '').slice(0, 8);
     this.value = numeros.replace(/^(\d{2})(\d)/, '$1/$2').replace(/^(\d{2}\/\d{2})(\d)/, '$1/$2');
     this.setCustomValidity('');
 });
@@ -212,7 +212,7 @@ $(async function() {
         let dtfinAlter = dataParaConsulta($('#campoDtFinal').val());
         for (const [id, data] of [['campoDtInicio', dtinitAlter], ['campoDtFinal', dtfinAlter]]) {
             const campo = document.getElementById(id);
-            campo.setCustomValidity(data ? '' : 'Informe uma data válida no formato dd/mm/yy.');
+            campo.setCustomValidity(data ? '' : 'Informe uma data válida no formato dd/mm/yyyy.');
             if (!data) { campo.reportValidity(); return; }
         }
 

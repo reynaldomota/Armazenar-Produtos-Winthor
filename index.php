@@ -172,8 +172,8 @@ if (!isset($_COOKIE['dtfin'])) {
                
                 <form id="formRelatorio" class="btn-group" style="color: rgb(255, 255, 255); margin-top: 15px;" method="POST" action="">
                     <i id="iconeCalendario" class="fas fa-calendar-alt" style="margin-right: 10px"> </i>
-                    <input id="campoDtInicio" class="form-control form-control-sm" style="margin-right: 10px; width: 110px;" name="dataIni" type="text" inputmode="numeric" maxlength="8" placeholder="dd/mm/yy" aria-label="Data inicial" required>
-                    <input id="campoDtFinal" class="form-control form-control-sm" style="width: 110px;" name="dataFin" type="text" inputmode="numeric" maxlength="8" placeholder="dd/mm/yy" aria-label="Data final" required>
+                    <input id="campoDtInicio" class="form-control form-control-sm" style="margin-right: 10px; width: 110px;" name="dataIni" type="text" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy" aria-label="Data inicial" required>
+                    <input id="campoDtFinal" class="form-control form-control-sm" style="width: 110px;" name="dataFin" type="text" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy" aria-label="Data final" required>
                     <input class="btn btn-warning btn-sm" style="margin-left: 10px; margin-right: 10px;" type="submit" value="Buscar" name="enviar">
                     <input id="filtroNumbonus" class="form-control form-control-sm" style="width: 120px;" type="text" inputmode="numeric" placeholder="NUMBONUS" aria-label="Filtrar por NUMBONUS">
                 </form>
