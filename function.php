@@ -12,9 +12,6 @@
     $data = json_decode($resp, true);
 
     $codfilial = isset($data['codfilial']) ? $data['codfilial'] : null;
-    $dias = isset($data['dias']) ? $data['dias'] : null;
-    $dtinit = isset($data['dtinit']) ? $data['dtinit'] : null;
-    $dtfin = isset($data['dtfin']) ? $data['dtfin'] : null;
 
     $codconferente = isset($data['codconferente']) ? $data['codconferente'] : null;
     $listaItensArmazenar = isset($data['listaItensArmazenar']) ? $data['listaItensArmazenar'] : [];
@@ -36,7 +33,7 @@
         && $codconferente == null
     ){
         
-        getProductBonusDate((int) $codfilial, $dtinit, $dtfin);
+        getProductBonusDate((int) $codfilial);
 
     }
     else if( $codconferente  !== null ){

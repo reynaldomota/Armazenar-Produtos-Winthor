@@ -9,63 +9,6 @@
 let checkboxesArmazenar = [];
 const btnArmazenar = document.getElementById('btnArmazenar')
 
-function getCookie(nomeCookie) {
-    var cookies = document.cookie.split('; ');
-    for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i].split('=');
-        if (cookie[0] === nomeCookie) {
-            return cookie[1];
-        }
-    }
-    return null;
-}
-
-
-var dtinit = getCookie('dtinit');
-var dtfin = getCookie('dtfin');
-
-function dataParaExibicao(iso) {
-    const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-    return partes ? `${partes[3]}/${partes[2]}/${partes[1]}` : '';
-}
-
-function dataParaConsulta(valor) {
-    const partes = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(valor);
-    if (!partes) return null;
-    const dia = Number(partes[1]), mes = Number(partes[2]), ano = Number(partes[3]);
-    const data = new Date(Date.UTC(ano, mes - 1, dia));
-    if (data.getUTCFullYear() !== ano || data.getUTCMonth() !== mes - 1 || data.getUTCDate() !== dia) return null;
-    return `${ano}-${partes[2]}-${partes[1]}`;
-}
-
-$('#campoDtInicio, #campoDtFinal').on('input', function() {
-    const numeros = this.value.replace(/\D/g, '').slice(0, 8);
-    this.value = numeros.replace(/^(\d{2})(\d)/, '$1/$2').replace(/^(\d{2}\/\d{2})(\d)/, '$1/$2');
-    this.setCustomValidity('');
-});
-
-if (dtinit || dtfin) {
- 
-    $('#campoDtInicio').val(dataParaExibicao(dtinit));
-    $('#campoDtFinal').val(dataParaExibicao(dtfin));
-
-} else {
-
-    setCookie(dtinit, dtfin)
-
-}
-
-
-function setCookie(dtinit, dtfin) {
-
-    document.cookie = "dtinit=" + dtinit + "; max-age=" + (60 * 60 * 48);
-    document.cookie = "dtfin=" + dtfin + "; max-age=" + (60 * 60 * 48);
-    location.reload();
-
-}
-
-
-
 btnArmazenar.addEventListener('click', async () => {
 
 
@@ -204,50 +147,6 @@ btnArmazenar.addEventListener('click', async () => {
 $(async function() {
 
         
-    $('#formRelatorio').submit(async function(e){
-
-        e.preventDefault();
-    
-        let dtinitAlter = dataParaConsulta($('#campoDtInicio').val());
-        let dtfinAlter = dataParaConsulta($('#campoDtFinal').val());
-        for (const [id, data] of [['campoDtInicio', dtinitAlter], ['campoDtFinal', dtfinAlter]]) {
-            const campo = document.getElementById(id);
-            campo.setCustomValidity(data ? '' : 'Informe uma data válida no formato dd/mm/yyyy.');
-            if (!data) { campo.reportValidity(); return; }
-        }
-
-        setCookie(dtinitAlter, dtfinAlter)
-
-        location.reload()
-        /*           
-        if(dtIni == '' || dtFin == ''){
-
-            $('#erroCampoRelatorio').html('<div class="alert alert-danger alert-dismissible fade show" role="alert"><strong>Atenção!</strong> Você precisa preencher os dois campos com uma data.<button type="button" class="close" data-dismiss="alert" aria-label="Close"> <span aria-hidden="true">&times;</span></button></div>');
-
-        }
-        else{
-
-            $.ajax({
-                type: "POST",
-                url: "relatorio.php",
-                data: dados,
-                success: function(data){
-                    $('#principal').html(data);
-
-                    $('#campoDtInicio').css('background-color', '#ffc107');
-                    $('#campoDtInicio').css('color', 'black');
-                    $('#campoDtFinal').css('background-color', '#ffc107');
-                    $('#campoDtFinal').css('color', 'black');
-                }
-
-            });
-        }
-            
-        */
-
-    })
-
-
     $('.alert').hide()
 
 
@@ -259,7 +158,7 @@ $(async function() {
 
     filiais.forEach(async function(filial) {
         try {
-            const html = await getProductBonus(filial.codfilial, dtinit, dtfin, filial.container);
+            const html = await getProductBonus(filial.codfilial, filial.container);
             $(filial.container).html(html);
             agrupar(filial.tabela);
         } catch (erro) {
@@ -271,13 +170,11 @@ $(async function() {
     });
 
 
-    async function getProductBonus(codfilial, dtinit, dtfin, divLoja) {
+    async function getProductBonus(codfilial, divLoja) {
 
 
         const jsonData = {
-            codfilial,
-            dtinit,
-            dtfin
+            codfilial
         };
 
         const data = await $.ajax({

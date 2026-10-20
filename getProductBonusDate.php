@@ -1,7 +1,7 @@
 <?php
 
 
-function getProductBonusDate($codfilial, $dtinit, $dtfin){
+function getProductBonusDate($codfilial){
 
 
     if ($codfilial == 1) {
@@ -30,7 +30,8 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
             WITH bonus_filtrado AS (
                 SELECT /*+ MATERIALIZE */ bonus_va.*
                 FROM pcbonusc bonus_va
-                WHERE bonus_va.databonus BETWEEN TO_DATE(:dtinit, 'YYYY-MM-DD') AND TO_DATE(:dtfin, 'YYYY-MM-DD')
+                WHERE bonus_va.databonus >= TRUNC(SYSDATE) - 180
+                    AND bonus_va.dtcancel IS NULL
                     AND bonus_va.codfilial = :codfilial
             ),
             venda_antecipada AS (
@@ -208,6 +209,15 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
                         LEFT JOIN pcempr sep2 ON sep2.matricula = arm.codseparador2 AND sep2.situacao = 'A'
                         LEFT JOIN pcempr sep3 ON sep3.matricula = arm.codseparador3 AND sep3.situacao = 'A'
                         LEFT JOIN pcempr sep4 ON sep4.matricula = arm.codseparador4 AND sep4.situacao = 'A'
+                    WHERE (
+                        bonus.dtfechamento IS NULL
+                        OR NOT EXISTS (
+                            SELECT 1
+                            FROM iwbonusarmazenar arm_finalizado
+                            WHERE arm_finalizado.numbonus = bonus.numbonus
+                              AND arm_finalizado.dtarmazenagem IS NOT NULL
+                        )
+                    )
                     GROUP BY
                         bonus.numbonus,
                         sep1.nome,
@@ -281,8 +291,6 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
     $stid_kap = oci_parse($conn, $query_kap);
 
      // Associe os parâmetros da consulta
-     oci_bind_by_name($stid_kap, ":dtinit", $dtinit);
-     oci_bind_by_name($stid_kap, ":dtfin", $dtfin);
      oci_bind_by_name($stid_kap, ":codfilial", $codfilial);
 
      
@@ -366,6 +374,12 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
         $dtfechaAtiv = (!$dtfecha && $databonus)  ? 'style="background-color: #ffd3d3"' : ' style="background-color: #ddffe2"'; 
         $bonusEmUso = (!$dtfecha && $qtentrada)  ? ' style=" background-color: #ffff87"' :' style="background-color: #ffd3d3"'; 
 
+        $bloqueioConferencia = !$dtfecha
+            ? ($qtentrada
+                ? "disabled title='Conferência em andamento'"
+                : "disabled title='Sem conferência'")
+            : '';
+
         $status = '';
         if (!$dtfecha && $qtentrada) {
             $status = 'data-status="conferindo"';
@@ -420,7 +434,7 @@ function getProductBonusDate($codfilial, $dtinit, $dtfin){
                             vertical-align: top;
                             background-position: center;
                             background-size: contain;'
-                            type='checkbox' 
+                            type='checkbox' $bloqueioConferencia
                             data-dtarmazenagem='$dtarmazenagem' data-dtarmazenagemini='$dtarmazenagemini' data-dtarmazenagemfin='$dtarmazenagemfin' 
                             data-codprod='$codprod' data-numbonus='$numbonus' 
                             data-codfilial='$codfilial' data-qtddisp='$qtddisp' data-qtdent='$qntent' /> 

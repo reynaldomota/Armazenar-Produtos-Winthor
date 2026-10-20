@@ -1,44 +1,13 @@
-<?php
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $dias = $_POST['qtd_dias'];
-    $dtinit = $_POST['dtinit'];
-    $dtfin = $_POST['dtfin'];
-
-    setcookie('dtinit', $dtinit,  time() + 172800);
-    setcookie('dtfin', $dtfin,  time() + 172800);
-
-}
-
-
-if (!isset($_COOKIE['dtinit'])) {
-    $currentDate = new DateTime();
-    $currentDate->sub(new DateInterval('P15D'));
-    $newDate = $currentDate->format('Y-m-d');
-    setcookie('dtinit', $newDate,  time() + 172800);
-    $_COOKIE['dtinit'] = $newDate;
-}
-
-if (!isset($_COOKIE['dtfin'])) {
-
-    setcookie('dtfin', date('Y-m-d'),  time() + 172800);
-    $_COOKIE['dtfin'] = date('Y-m-d');
-    
-}
-
-
-?>
-
-
 <html>
 
 
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link href="src/_css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="src/_css/styles.css?v=<?= filemtime(__DIR__ . '/src/_css/styles.css') ?>" type="text/css">
+    <link rel="stylesheet" href="src/_css/styles.css?v=<?= filemtime(__DIR__ . '/src/_css/styles.css') ?>"
+        type="text/css">
     <link rel="icon" href="src/_img/favicon.png" />
     <title>Entrada de Mercadoria</title>
 </head>
@@ -53,7 +22,8 @@ if (!isset($_COOKIE['dtfin'])) {
             <div class="modal-content">
 
 
-                <div class="alert alert-warning alert-dismissible fade show" id="alertMsg" style="display:none;" role="alert">
+                <div class="alert alert-warning alert-dismissible fade show" id="alertMsg" style="display:none;"
+                    role="alert">
                     <span id="msgAlert"></span>
                     <button type="button" class="btn-close" id="closeAlert"></button>
                 </div>
@@ -70,25 +40,26 @@ if (!isset($_COOKIE['dtfin'])) {
 
 
                     <div class="table-responsive">
-                    <table id="tabelaDestino" class="table table-bordered table-hover bg-light" data-show-columns='true'>
+                        <table id="tabelaDestino" class="table table-bordered table-hover bg-light"
+                            data-show-columns='true'>
 
-                        <thead id='theader-kap' class="bg-kapitao">
+                            <thead id='theader-kap' class="bg-kapitao">
 
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">DATA</th>
-                                <th scope="col">CODIGO</th>
-                                <th scope="col">DESCRICAO</th>
-                                <th scope="col">CONF</th>
-                                <th scope="col">DISP</th>
-                                <th scope="col">EMB</th>
-                                <th scope="col">CONF</th>
-                            </tr>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">DATA</th>
+                                    <th scope="col">CODIGO</th>
+                                    <th scope="col">DESCRICAO</th>
+                                    <th scope="col">CONF</th>
+                                    <th scope="col">DISP</th>
+                                    <th scope="col">EMB</th>
+                                    <th scope="col">CONF</th>
+                                </tr>
 
-                        </thead>
-                        <tbody id="tbodyDestino"> </tbody>
+                            </thead>
+                            <tbody id="tbodyDestino"> </tbody>
 
-                    </table>
+                        </table>
                     </div>
 
 
@@ -130,7 +101,8 @@ if (!isset($_COOKIE['dtfin'])) {
                             <label for="nomeConferente">NOME DO CONFERENTE</label>
                             <div class="input-group">
                                 <input type="text" disabled class="form-control" id="nomeConferente">
-                                <button type="button" id="btnAddConferente" class="btn btn-primary" aria-label="Adicionar conferente">+</button>
+                                <button type="button" id="btnAddConferente" class="btn btn-primary"
+                                    aria-label="Adicionar conferente">+</button>
                             </div>
                         </div>
 
@@ -150,37 +122,44 @@ if (!isset($_COOKIE['dtfin'])) {
 
     <div style=" position: fixed; width: 100%;">
 
-        <nav class="navbar navbar-expand-lg navbar-light shadow-sm" style="    height: 50px; background-color: white; padding: 1px;">
+        <nav class="navbar navbar-expand-lg navbar-light shadow-sm"
+            style="    height: 50px; background-color: white; padding: 1px;">
 
             <div id="statusCon" class="container-fluid">
 
 
-                <a class="navbar-brand" style=" padding-right: 20px; font-weight: 600;" href="/armazenar">Armazenagem de Mercadoria</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" style=" padding-right: 20px; font-weight: 600;" href="/armazenar">Armazenagem de
+                    Mercadoria</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                    aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
 
-                <div id="filtroStatus" class="btn-group" >
-                    <button type="button" data-status="semConferencia" class="btn  btn-sm" style="background-color: #ffd3d3; border: 1px solid #cdc7c7;">Sem conferência <i class="fas fa-caret-right iconeEspaco"></i> </button>
-                    <button type="button" data-status="conferindo" class="btn btn-sm" style="background-color: #ffff87; border: 1px solid #cdc7c7;">Conferência em andamento <i class="fas fa-caret-right iconeEspaco"></i></button>
-                    <button type="button" data-status="disponivel" class="" style="background-color: #ddffe2; border: 1px solid #cdc7c7;">Disponível para venda</button>
-                    <button type="button" data-status="iniciados" class="btn btn-sm" style="background-color: #cfe2ff; border: 1px solid #cdc7c7;">Iniciados</button>
-                    <button type="button" class="btn btn-sm" data-status="todos" style=" border: 1px solid #cdc7c7;">Todos</button>
+                <div id="filtroStatus" class="btn-group">
+                    <button type="button" data-status="semConferencia" class="btn  btn-sm"
+                        style="background-color: #ffd3d3; border: 1px solid #cdc7c7;">Sem conferência <i
+                            class="fas fa-caret-right iconeEspaco"></i> </button>
+                    <button type="button" data-status="conferindo" class="btn btn-sm"
+                        style="background-color: #ffff87; border: 1px solid #cdc7c7;">Conferência em andamento <i
+                            class="fas fa-caret-right iconeEspaco"></i></button>
+                    <button type="button" data-status="disponivel" class=""
+                        style="background-color: #ddffe2; border: 1px solid #cdc7c7;">Pronto para armazenar</button>
+                    <button type="button" data-status="iniciados" class="btn btn-sm"
+                        style="background-color: #cfe2ff; border: 1px solid #cdc7c7;">Iniciados</button>
+                    <button type="button" class="btn btn-sm" data-status="todos"
+                        style=" border: 1px solid #cdc7c7;">Todos</button>
                 </div>
 
-               
-                <form id="formRelatorio" class="btn-group" style="color: rgb(255, 255, 255); margin-top: 15px;" method="POST" action="">
-                    <i id="iconeCalendario" class="fas fa-calendar-alt" style="margin-right: 10px"> </i>
-                    <input id="campoDtInicio" class="form-control form-control-sm" style="margin-right: 10px; width: 110px;" name="dataIni" type="text" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy" aria-label="Data inicial" required>
-                    <input id="campoDtFinal" class="form-control form-control-sm" style="width: 110px;" name="dataFin" type="text" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy" aria-label="Data final" required>
-                    <input class="btn btn-warning btn-sm" style="margin-left: 10px; margin-right: 10px;" type="submit" value="Buscar" name="enviar">
-                    <input id="filtroNumbonus" class="form-control form-control-sm" style="width: 120px;" type="text" inputmode="numeric" placeholder="NUMBONUS" aria-label="Filtrar por NUMBONUS">
-                </form>
-    
+
+                <div class="btn-group">
+                    <input id="filtroNumbonus" class="form-control form-control-sm" style="width: 120px;" type="text"
+                        inputmode="numeric" placeholder="NUMBONUS" aria-label="Filtrar por NUMBONUS">
+                </div>
+
 
                 <form class="d-flex m-0 ">
-                    <button id="btnArmazenar" type="button" class="btn btn-sm"  style=" border: 1px solid #cdc7c7;">
+                    <button id="btnArmazenar" type="button" class="btn btn-sm" style=" border: 1px solid #cdc7c7;">
                         Armazenar
                     </button>
                 </form>
