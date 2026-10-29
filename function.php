@@ -7,6 +7,7 @@
     require_once ("getConferente.php");
     require_once ("setItensBonus.php");
     require_once ("getConferentesArmazenagem.php");
+    require_once ("getArmazenagemBonus.php");
 
     $resp = file_get_contents("php://input");
     $data = json_decode($resp, true);
@@ -20,7 +21,10 @@
 
 
 
-    if (!empty($listaItensArmazenar) && $acao === 'conferentes') {
+    if ($acao === 'consultarArmazenagem') {
+        getArmazenagemBonus(isset($data['numbonus']) ? $data['numbonus'] : null);
+    }
+    else if (!empty($listaItensArmazenar) && $acao === 'conferentes') {
         getConferentesArmazenagem($listaItensArmazenar);
     }
     else if (!empty($listaItensArmazenar) && in_array($acao, ['iniciar', 'finalizar'], true)) {

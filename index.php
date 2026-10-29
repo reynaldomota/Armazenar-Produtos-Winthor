@@ -13,6 +13,23 @@
 </head>
 
 <body background="src/_img/fundo_total.png">
+    <div class="modal fade" id="modalBonusArmazenado" tabindex="-1" aria-labelledby="tituloBonusArmazenado" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tituloBonusArmazenado">Armazenagem do bônus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="mensagemBonusArmazenado"></p>
+                    <ul id="responsaveisBonusArmazenado"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <div class="modal fade" id="staticBackdrop" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
